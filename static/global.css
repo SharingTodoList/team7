@@ -1,0 +1,25 @@
+html {
+    font-family: 'Jua', sans-serif;
+}
+
+.base_title {
+    font_size: 50px;
+    text-align: center;
+}
+
+#menu_bar ul {
+
+    list-style-type: none;
+
+
+    /* 우측 정렬 하기 */
+    margin-left:100px;
+    float: right;
+
+}
+
+#menu_bar ul li {
+
+    display: inline;
+
+}
