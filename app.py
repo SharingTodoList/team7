@@ -6,9 +6,12 @@ from pymongo import MongoClient
 client = MongoClient('mongodb+srv://test:sparta@sparta.xob7d.mongodb.net/?retryWrites=true&w=majority')
 db = client.dbsparta
 
-
 @app.route('/')
 def main():
+    return render_template("login.html")
+
+@app.route('/base.html')
+def base():
     return render_template("base.html")
 
 @app.route('/mypage')
