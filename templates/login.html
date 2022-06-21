@@ -5,8 +5,6 @@
 
         <!-- Webpage Title -->
         <title>Log In | 모두의 오늘</title>
-        <link rel="shortcut icon" href="/static/images/wp_favicon.ico" type="image/x-icon">
-        <link rel="icon" href="/static/images/wp_favicon.ico" type="image/x-icon">
         <meta property="og:title" content="모두의 오늘 - share to-do"/>
         <meta property="og:description" content="mini project for Web Plus"/>
         <!-- Required meta tags -->
@@ -20,7 +18,6 @@
 
         <link rel="preconnect" href="https://fonts.gstatic.com">
         <link href="https://fonts.googleapis.com/css2?family=Gamja+Flower&family=Stylish&display=swap" rel="stylesheet">
-{#        <link href="/static/css/wp_4_mystyle.css" rel="stylesheet">#}
         <link rel="stylesheet" type="text/css" href="/static/global.css"/>
 
         <!-- JS -->
@@ -74,9 +71,11 @@
                 return regExp.test(asValue);
             }
 
+            //중복확인로직
             function check_dup() {
                 let username = $("#input-username").val()
-                console.log(username)
+                alert(username)
+                {#console.log(username)#}
                 if (username == "") {
                     $("#help-id").text("아이디를 입력해주세요.").removeClass("is-safe").addClass("is-danger")
                     $("#input-username").focus()
@@ -90,10 +89,11 @@
                 $("#help-id").addClass("is-loading")
                 $.ajax({
                     type: "POST",
-                    url: "/wp/sweeter/sign_up/check_dup",
+                    url: "/check_dup",
                     data: {
                         username_give: username
                     },
+
                     success: function (response) {
 
                         if (response["exists"]) {
@@ -124,7 +124,7 @@
                 $("#help-id").addClass("is-loading")
                 $.ajax({
                     type: "POST",
-                    url: "/wp/sweeter/sign_up/check_nick",
+                    url: "/check_nick",
                     data: {
                         username_give: nickname
                     },
@@ -142,13 +142,12 @@
                 });
             }
 
-
             function sign_up() {
                 let username = $("#input-username").val()
                 let password = $("#input-password").val()
                 let password2 = $("#input-password2").val()
-                console.log(username, password, password2)
-
+                let nickname = $("#input-nickname").val()
+                console.log(username, password, password2, nickname)
 
                 if ($("#help-id").hasClass("is-danger")) {
                     alert("아이디를 다시 확인해주세요.")
@@ -182,14 +181,15 @@
                 }
                 $.ajax({
                     type: "POST",
-                    url: "/wp/sweeter/sign_up/save",
+                    url: "/register",
                     data: {
                         username_give: username,
-                        password_give: password
+                        password_give: password,
+                        nickname_give: nickname
                     },
                     success: function (response) {
                         alert("회원가입을 축하드립니다!")
-                        window.location.replace("/wp/sweeter/login")
+                        window.location.replace("/")
                     }
                 });
 
@@ -214,17 +214,19 @@
                 } else {
                     $("#help-password-login").text("")
                 }
+
                 $.ajax({
                     type: "POST",
-                    url: "/wp/sweeter/sign_in",
+                    url: "/sign_in",
                     data: {
                         username_give: username,
                         password_give: password
                     },
                     success: function (response) {
+                        debugger
                         if (response['result'] == 'success') {
-                            $.cookie('mytoken', response['token'], {path: '/wp/sweeter'});
-                            window.location.replace("/wp/sweeter")
+                            $.cookie('mytoken', response['token'], {path: '/'});
+                            window.location.replace("/base")
                         } else {
                             alert(response['msg'])
                         }
