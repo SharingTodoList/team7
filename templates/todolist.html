@@ -163,7 +163,7 @@
       $.ajax({
         type: "POST",
         url: "/bucket",
-        data: { bucket_give: bucket, timetable: time },
+        data: { bucket_give: bucket, time_give: timetable },
         success: function (response) {
           alert(response["msg"]);
           window.location.reload();
