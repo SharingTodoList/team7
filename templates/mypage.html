@@ -132,38 +132,60 @@
         url: "/bucket",
         data: {},
         success: function (response) {
-          let rows = response["buckets"];
+          let rows = response['buckets'];
           for (let i = 0; i < rows.length; i++) {
-            let bucket = rows[i]["bucket"];
-            let num = rows[i]["num"];
-            let done = rows[i]["done"];
-
+            let detail = rows[i]['detail'];
+            let seq = rows[i]['seq'];
+            let status = rows[i]['status'];
+            let date = rows[i]['date'];
             let temp_html = ``;
-            if (done == 0) {
-              temp_html = `<li>
-                                            <h2>✅ ${bucket}</h2>
-                                            <button onclick="done_bucket(${num})" type="button" class="btn btn-outline-primary">완료!</button>
-                                        </li>`;
+
+
+            if (status == 0) {
+              temp_html = `<tr>
+                              <td>
+                                <h2>${date}</h2>
+                              </td>
+                              <td>
+                                <h2>${detail}</h2>
+                               
+                              </td>
+                              <td>
+                                <button onclick="done_bucket(${seq})" type="button" class="btn btn-outline-primary">완료!</button>
+                                <button onclick="delete_bucket(${seq})" type="button" class="btn btn-outline-primary">삭제</button>
+                              </td>
+                            </tr>`;
             } else {
-              temp_html = `<li>
-                                           <h2 class="done">✅ ${bucket}</h2>
-                                           <button onclick="back_bucket(${num})" type="button" class="btn btn-outline-primary">취소!</button>
-                                       </li>`;
+              temp_html = `<tr>
+                <td>
+                  <h2>${date}</h2>
+                </td>
+                <td>
+                  <h2>${detail}</h2>
+                  
+                </td>
+                <td>
+                  <button onclick="back_bucket(${seq})" type="button" class="btn btn-outline-primary">취소!</button>
+                  <button onclick="delete_bucket(${seq})" type="button" class="btn btn-outline-primary">삭제</button>
+                </td>
+              </tr>`;
             }
+
             $("#bucket-list").append(temp_html);
+
           }
         },
       });
     }
 
     function save_bucket() {
-      let bucket = $("#bucket").val();
-      let timetable = $("#s_time_time").val();
-
+      let bucket = $('#bucket').val();
+      let time = $('#s_time_time_from').val();
+      let tag = $('#tag').val();
       $.ajax({
         type: "POST",
         url: "/bucket",
-        data: { bucket_give: bucket, time_give: timetable },
+        data: { bucket_give: bucket, time_give: time, tag_give: tag },
         success: function (response) {
           alert(response["msg"]);
           window.location.reload();
@@ -171,11 +193,11 @@
       });
     }
 
-    function done_bucket(num) {
+    function done_bucket(seq) {
       $.ajax({
         type: "POST",
         url: "/bucket/done",
-        data: { num_give: num },
+        data: { seq_give: seq },
         success: function (response) {
           alert(response["msg"]);
           window.location.reload();
@@ -183,17 +205,31 @@
       });
     }
 
-    function back_bucket(num) {
+    function back_bucket(seq) {
       $.ajax({
         type: "POST",
         url: "/bucket/back",
-        data: { num_give: num },
+        data: { seq_give: seq },
         success: function (response) {
           alert(response["msg"]);
           window.location.reload();
         },
       });
     }
+
+    function delete_bucket(seq) {
+      $.ajax({
+        type: "POST",
+        url: "/bucket/delete",
+        data: { seq_give: seq },
+        success: function (response) {
+          alert(response["msg"]);
+          window.location.reload();
+        },
+      });
+    }
+
+
     $(document).ready(function () {
       var tag = {};
       var counter = 0;
@@ -248,7 +284,7 @@
         }
       });
 
-      // 삭제 버튼 
+      // 삭제 버튼
       // 인덱스 검사 후 삭제
       $(document).on("click", ".del-btn", function (e) {
         var index = $(this).attr("idx");
@@ -277,7 +313,7 @@
     <br>
     <div class="mytime">
       시간대 : &nbsp;
-      <select id="s_time_time" onchange="s_time_select(this)" class="time_select">
+      <select id="s_time_time_from" onchange="s_time_select(this)" class="time_select">
         <script>
           for (i = 12; i < 48; i++) {
             var hour = "";
@@ -298,7 +334,7 @@
         </script>
       </select>
       &nbsp;&nbsp;~ &nbsp; &nbsp;
-      <select id="s_time_time" onchange="s_time_select(this)" class="time_select">
+      <select id="s_time_time_to" onchange="s_time_select(this)" class="time_select">
         <script>
           for (i = 12; i < 48; i++) {
             var hour = "";
@@ -315,6 +351,7 @@
             document.write(
               "<option value=" + hour + min + ">" + hour + min + "</option>"
             );
+
           }
         </script>
       </select>
@@ -333,7 +370,18 @@
   </div>
 
 
-  <div class="mybox" id="bucket-list"></div>
+
+  <div class="mybox" id="bucket-list">
+    <table class="table table-success table-striped">
+      <thead>
+        <tr>
+          <th scope="col">시간</th>
+          <th scope="col">할 일</th>
+          <th scope="col">체크</th>
+        </tr>
+      </thead>
+    </table>
+  </div>
 </body>
 
 </html>
