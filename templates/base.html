@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8"/>
     <title>Document</title>
     <link rel="preconnect" href="https://fonts.googleapis.com"/>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -13,20 +13,29 @@
 </head>
 <body>
 <header>
-    <p class="base_title">모두의 오늘</p>
-    <div id="menu_bar">
-        <ul>
-            <li><a href="/">홈으로</a></li>
-            <li><a href="/mypage">마이페이지</a></li>
-            <li><a href="/logout">로그아웃</a></li>
-        </ul>
+    <section class="hero is-white">
+        <div
+                class="hero-body has-text-centered"
+                style="padding-bottom: 1rem; margin: auto"
+        >
+            <section class="hero is-white">
+                <div
+                        class="hero-body has-text-centered"
+                        style="padding-bottom: 1rem; margin: auto"
+                >
+                    <h1 class="title is-sparta">모두의 오늘</h1>
+                    <h3 class="subtitle is-sparta">share to-do</h3>
+                </div>
+            </section>
 
-    </div>
-
+            <div id="menu_bar">
+                <ul>
+                    <li><a href="/">홈으로</a></li>
+                    <li><a href="/mypage">마이페이지</a></li>
+                    <li><a href="/logout">로그아웃</a></li>
+                </ul>
+            </div>
 </header>
-<main role="main">
-    <!-- Main content block -->
-    {% block content %}{% endblock %}
-</main>
+
 </body>
 </html>
