@@ -57,7 +57,15 @@ def sign_in():
          'exp': datetime.utcnow() + timedelta(seconds=60 * 60 * 24)
         }
 
-        token = jwt.encode(payload, SECRET_KEY, algorithm='HS256').decode('utf-8')
+        print(payload)
+        print(SECRET_KEY)
+        print(jwt.encode(payload, SECRET_KEY, algorithm='HS256'))
+
+        # token = jwt.encode(payload, SECRET_KEY, algorithm='HS256').decode('utf-8')
+        #강의에서는 위의코드이나 https://fusiondeveloper.tistory.com/31 에서는 에러가 날때
+        # 파이썬 버전에 따라 다른데 .decode('utf-8')을 지워줘도 된다고 한다.
+        token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
+
 
         return jsonify({'result': 'success', 'token': token})
     # 찾지 못하면
