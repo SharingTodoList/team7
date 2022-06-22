@@ -81,9 +81,7 @@ def base():
     return render_template('base.html')
 
 
-@app.route('/todolist')
-def todolist():
-    return render_template('todolist.html')
+
 
 @app.route('/mypage')
 def mypage():
@@ -105,14 +103,16 @@ def bucket_post():
         'time':time_receive,
         'detail':bucket_receive,
         'tag':tag_receive,
-        
         'status':0,
-        
     }
-
     db.todo.insert_one(doc)
     return jsonify({'msg': '등록완료!'})
 
+
+
+    
+    
+    
 
 @app.route("/bucket/done", methods=["POST"])
 def bucket_done():
@@ -140,13 +140,40 @@ def bucket_get():
     return jsonify({'buckets': bucket_list})
 
 
+    
 
-
+@app.route('/basic')
+def basic():
+    return render_template("basic.html")
 
 
 @app.route('/logout')
 def logout():
     return render_template("logout.html")
+
+@app.route('/todolist')
+def todolist():
+    return render_template("todolist.html")
+
+@app.route("/listExTodo")
+def listExTodo():
+    return render_template("listExTodo.html")
+
+@app.route('/showOldTodo', methods=['GET'])
+def listExTodo_list():
+
+    todo_list = list(db.todo.find({}, {'_id': False}))
+    print(todo_list)
+    return jsonify({'todo':todo_list})
+
+@app.route('/memberpage')
+def member():
+    return render_template("memberpage.html")
+
+
+@app.route('/marklist')
+def mark():
+    return render_template("marklist.html")
 
 
 if __name__ == '__main__':

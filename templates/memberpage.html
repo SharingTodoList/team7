@@ -1,0 +1,60 @@
+{% extends 'basic.html' %}
+{% block content %}
+
+
+<script>
+	function memberList() {
+
+		let schDate = $('#schDate').val();
+		alert(schDate)
+		$('#tbody').empty();
+		$.ajax({
+			type: 'POST',
+			url: '/memberpage',
+			data: {
+				id_give: 'park',
+				date_give: schDate
+			},
+			success: function (response) {
+				let rows = response['todo']
+				debugger
+				console.log(rows.length)
+				for (let i = 0; i < rows.length; i++) {
+					let time = rows[i]['time']
+					let detail = rows[i]['detail']
+					let tag = rows[i]['tag']
+					let status = rows[i]['status']
+
+					let temp_html = `<tr>
+										<td>${time}</td>
+										<td>${detail}</td>
+										<td>${tag}</td>
+										<td>${status}</td>
+									</tr>`
+					$('#tbody').append(temp_html)
+				}
+
+			}
+		});
+</script>
+
+<body>
+	<div class="member-list">
+		<div class="tableclass">
+			<table class="table table-success table-striped">
+				<thead>
+					<tr>
+						<th scope="col">시간</th>
+						<th scope="col">내용</th>
+
+						<th scope="col">완료여부</th>
+					</tr>
+				</thead>
+				<tbody id="tbody">
+
+				</tbody>
+			</table>
+		</div>
+	</div>
+</body>
+{% endblock %}
