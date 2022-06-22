@@ -1,49 +1,58 @@
-from flask import Flask, render_template, jsonify, request, session, redirect, url_for
+from pymongo import MongoClient
+import jwt
+import datetime
+import hashlib
+from flask import Flask, render_template, jsonify, request, redirect, url_for
+from werkzeug.utils import secure_filename
+from datetime import datetime, timedelta
+
 
 app = Flask(__name__)
+app.config["TEMPLATES_AUTO_RELOAD"] = True
+app.config['UPLOAD_FOLDER'] = "./static/profile_pics"
 
-from pymongo import MongoClient
+import certifi
+
+ca = certifi.where()
+
+SECRET_KEY = 'SPARTA'
 
 client = MongoClient('mongodb+srv://test:sparta@sparta.xob7d.mongodb.net/?retryWrites=true&w=majority')
 db = client.dbsparta
 
-SECRET_KEY = 'SPARTA'
-
-import jwt
-import datetime
-import hashlib
-from datetime import datetime, timedelta
-
 
 @app.route('/')
-def main():
-    return render_template("login.html")
+def home():
+    token_receive = request.cookies.get('mytoken')
+    try:
+        payload = jwt.decode(token_receive, SECRET_KEY, algorithms=['HS256'])
+        user_info = db.users.find_one({"username": payload["id"]})
+        return render_template('index.html', user_info=user_info)
+    except jwt.ExpiredSignatureError:
+        return redirect(url_for("login", msg="로그인 시간이 만료되었습니다."))
+    except jwt.exceptions.DecodeError:
+        return redirect(url_for("login", msg="로그인 정보가 존재하지 않습니다."))
 
 
-@app.route('/register', methods=['POST'])
-def api_register():
-    id_receive = request.form['username_give']
-    pw_receive = request.form['password_give']
-    nickname_receive = request.form['nickname_give']
-
-    # print(id_receive)
-
-    pw_hash = hashlib.sha256(pw_receive.encode('utf-8')).hexdigest()
-    # print(id_receive)
-    # print(pw_hash)
-    # print(pw_receive)
-    # print(nickname_receive)
-    db.member.insert_one({'id': id_receive, 'pw': pw_hash, 'nick': nickname_receive})
-
-    return jsonify({'result': 'success'})
+@app.route('/login')
+def login():
+    msg = request.args.get("msg")
+    return render_template('login.html', msg=msg)
 
 
-@app.route('/check_dup', methods=['POST'])
-def check_dup():
-    username_receive = request.form['username_give']
-    # print(username_receive)
-    exists = bool(db.member.find_one({"username": username_receive}))
-    return jsonify({'result': 'success', 'exists': exists})
+
+@app.route('/member/<nick>')
+def user(nick):
+    # 각 사용자의 프로필과 글을 모아볼 수 있는 공간
+    token_receive = request.cookies.get('mytoken')
+    try:
+        payload = jwt.decode(token_receive, SECRET_KEY, algorithms=['HS256'])
+        status = (nick == payload["id"])  # 내 프로필이면 True, 다른 사람 프로필 페이지면 False
+
+        user_info = db.member.find_one({"username": nick}, {"_id": False})
+        return render_template('user.html', user_info=user_info, status=status)
+    except (jwt.ExpiredSignatureError, jwt.exceptions.DecodeError):
+        return redirect(url_for("home"))
 
 
 @app.route('/sign_in', methods=['POST'])
@@ -53,22 +62,14 @@ def sign_in():
     password_receive = request.form['password_give']
 
     pw_hash = hashlib.sha256(password_receive.encode('utf-8')).hexdigest()
-    result = db.member.find_one({'id': username_receive, 'pw': pw_hash})
+    result = db.users.find_one({'username': username_receive, 'password': pw_hash})
 
     if result is not None:
         payload = {
-            'id': username_receive,
-            'exp': datetime.utcnow() + timedelta(seconds=60 * 60 * 24)
+         'id': username_receive,
+         'exp': datetime.utcnow() + timedelta(seconds=60 * 60 * 24)  # 로그인 24시간 유지
         }
-
-        print(payload)
-        print(SECRET_KEY)
-        print(jwt.encode(payload, SECRET_KEY, algorithm='HS256'))
-
-        # token = jwt.encode(payload, SECRET_KEY, algorithm='HS256').decode('utf-8')
-        # 강의에서는 위의코드이나 https://fusiondeveloper.tistory.com/31 에서는 에러가 날때
-        # 파이썬 버전에 따라 다른데 .decode('utf-8')을 지워줘도 된다고 한다.
-        token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
+        token = jwt.encode(payload, SECRET_KEY, algorithm='HS256').decode('utf-8')
 
         return jsonify({'result': 'success', 'token': token})
     # 찾지 못하면
@@ -76,80 +77,98 @@ def sign_in():
         return jsonify({'result': 'fail', 'msg': '아이디/비밀번호가 일치하지 않습니다.'})
 
 
-@app.route('/base')
-def base():
-    return render_template('base.html')
-
-
-@app.route('/todolist')
-def todolist():
-    return render_template('todolist.html')
-
-@app.route('/mypage')
-def mypage():
-    return render_template('mypage.html')
-
-
-@app.route("/bucket", methods=["POST"])
-def bucket_post():
-    bucket_receive = request.form['bucket_give']
-    time_receive=request.form['time_give']
-    tag_receive=request.form['tag_give']
-    
-    bucket_list=list(db.todo.find({}, {'_id':False}))
-    count= len(bucket_list)+1
-
+@app.route('/sign_up/save', methods=['POST'])
+def sign_up():
+    username_receive = request.form['username_give']
+    password_receive = request.form['password_give']
+    password_hash = hashlib.sha256(password_receive.encode('utf-8')).hexdigest()
     doc = {
-        'seq':count,
-        'date':datetime.today().strftime("%Y-%m-%d"),
-        'time':time_receive,
-        'detail':bucket_receive,
-        'tag':tag_receive,
-        
-        'status':0,
-        
+        "username": username_receive,                               # 아이디
+        "password": password_hash,                                  # 비밀번호
+        "profile_name": username_receive,                           # 프로필 이름 기본값은 아이디
+        "profile_pic": "",                                          # 프로필 사진 파일 이름
+        "profile_pic_real": "profile_pics/profile_placeholder.png", # 프로필 사진 기본 이미지
+        "profile_info": ""                                          # 프로필 한 마디
     }
-
-    db.todo.insert_one(doc)
-    return jsonify({'msg': '등록완료!'})
-
-
-@app.route("/bucket/done", methods=["POST"])
-def bucket_done():
-    seq_receive = request.form['seq_give']
-    db.todo.update_one({'seq': int(seq_receive)}, {'$set': {'status': 1}})
-    return jsonify({'msg': '버킷완료!'})
-
-@app.route("/bucket/back",methods=["POST"])
-def bucket_back():
-    seq_receive = request.form['seq_give']
-    db.todo.update_one({'seq': int(seq_receive)}, {'$set': {'status': 0}})
-    return jsonify({'msg': '버킷취소!'})
-
-@app.route("/bucket/delete",methods=["POST"])
-def bucket_delete():
-    seq_receive = request.form['seq_give']
-    db.todo.delete_one({'seq': int(seq_receive)})
-    return jsonify({'msg': '버킷삭제!'})
+    db.users.insert_one(doc)
+    return jsonify({'result': 'success'})
 
 
-@app.route("/bucket", methods=["GET"])
-def bucket_get():
-    bucket_list = list(db.todo.find({}, {'_id': False}))
-    
-    return jsonify({'buckets': bucket_list})
+@app.route('/sign_up/check_dup', methods=['POST'])
+def check_dup():
+    username_receive = request.form['username_give']
+    exists = bool(db.users.find_one({"username": username_receive}))
+    return jsonify({'result': 'success', 'exists': exists})
 
 
+@app.route('/update_profile', methods=['POST'])
+def save_img():
+    token_receive = request.cookies.get('mytoken')
+    try:
+        payload = jwt.decode(token_receive, SECRET_KEY, algorithms=['HS256'])
+        # 프로필 업데이트
+        return jsonify({"result": "success", 'msg': '프로필을 업데이트했습니다.'})
+    except (jwt.ExpiredSignatureError, jwt.exceptions.DecodeError):
+        return redirect(url_for("home"))
 
 
+@app.route('/posting', methods=['POST'])
+def posting():
+    token_receive = request.cookies.get('mytoken')
+    try:
+        payload = jwt.decode(token_receive, SECRET_KEY, algorithms=['HS256'])
+        user_info = db.member.find_one({"username": payload["nick"]})
+        tag_receive = request.form["tag_give"]
+        date_receive = request.form["date_give"]
+        doc = {
+            "username": user_info["nick"],
+            "tag": tag_receive,
+            "date": date_receive
+        }
+        db.posts.insert_one(doc)
+        return jsonify({"result": "success", 'msg': '포스팅 성공'})
+    except (jwt.ExpiredSignatureError, jwt.exceptions.DecodeError):
+        return redirect(url_for("home"))
 
 
-@app.route('/logout')
-def logout():
-    return render_template("logout.html")
+@app.route("/get_posts", methods=['GET'])
+def get_posts():
+    token_receive = request.cookies.get('mytoken')
+    try:
+        payload = jwt.decode(token_receive, SECRET_KEY, algorithms=['HS256'])
+        posts = list(db.todo.find({}).sort("date", -1).limit(20))
+        for post in posts:
+                post["_id"] = str(post["_id"])
+                post["count_heart"] = db.likes.count_documents({"post_id": post["_id"], "type": "heart"})
+                post["heart_by_me"] = bool(db.likes.find_one({"post_id": post["_id"], "type": "heart", "username": payload['id']}))
+        return jsonify({"result": "success", "msg": "포스팅을 가져왔습니다.", "posts": posts})
+    except (jwt.ExpiredSignatureError, jwt.exceptions.DecodeError):
+        return redirect(url_for("home"))
+
+
+@app.route('/update_like', methods=['POST'])
+def update_like():
+    token_receive = request.cookies.get('mytoken')
+    try:
+        payload = jwt.decode(token_receive, SECRET_KEY, algorithms=['HS256'])
+        user_info = db.likes.find_one({"username": payload["nick"]})
+        post_id_receive = request.form["post_id_give"]
+        type_receive = request.form["type_give"]
+        action_receive = request.form["action_give"]
+        doc = {
+            "post_id": post_id_receive,
+            "username": user_info("nick"),
+            "type": type_receive
+        }
+        if action_receive == "like":
+            db.likes.insert_one(doc)
+        else:
+            db.likes.delete_one(doc)
+        count = db.likes.count_documents({"post_id": post_id_receive, "type": type_receive})
+        return jsonify({"result": "success", 'msg': 'updated', "count": count})
+    except (jwt.ExpiredSignatureError, jwt.exceptions.DecodeError):
+        return redirect(url_for("home"))
 
 
 if __name__ == '__main__':
     app.run('0.0.0.0', port=5000, debug=True)
-
-
