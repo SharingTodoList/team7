@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous"/>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+            crossorigin="anonymous"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet"/>
+
+    <title>인생 버킷리스트</title>
+    <title>Log In | 모두의 오늘</title>
+    <link rel="shortcut icon" href="/static/images/wp_favicon.ico" type="image/x-icon"/>
+    <link rel="icon" href="/static/images/wp_favicon.ico" type="image/x-icon"/>
+    <meta property="og:title" content="모두의 오늘 - share to-do"/>
+    <meta property="og:description" content="mini project for Web Plus"/>
+    <!-- Required meta tags -->
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+
+    <!-- Bulma CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css"/>
+    <!-- Font Awesome CSS -->
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"/>
+
+    <link rel="preconnect" href="https://fonts.gstatic.com"/>
+    <link href="https://fonts.googleapis.com/css2?family=Gamja+Flower&family=Stylish&display=swap" rel="stylesheet"/>
+    {#
+  <link href="/static/css/wp_4_mystyle.css" rel="stylesheet" />
+  #}
+    <link rel="stylesheet" type="text/css" href="/static/global.css"/>
+
+    <!-- JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.js"></script>
+    <script>
+        function sign_out() {
+            $.removeCookie('mytoken', {path: '/'});
+            {#alert('로그아웃!')#}
+            window.location.href = "/"
+        }
+    </script>
+    <style>
+        .title {
+            font-weight: 800;
+            font-size: 5rem;
+            font-family: "Stylish", sans-serif;
+        }
+
+        .subtitle {
+            font-family: "Gamja Flower", cursive;
+            font-size: 2rem;
+            margin-top: 20px;
+        }
+
+        .help {
+            color: gray;
+        }
+        .menuTitle{
+            margin-top: 0px;
+            height: 142px;
+        }
+    </style>
+
+
+</head>
+<body>
+
+<section class="hero is-white">
+    <div class="hero-body has-text-centered" style="padding-bottom: 1rem; margin: auto">
+        <a href="main" class="title is-sparta">모두의 오늘</a>
+        <h3 class="subtitle is-sparta">share to-do</h3>
+    </div>
+    <div class="menuTitle">
+        <ul class="menu subtitle is-sparta" >
+            <a href="main">모두의<br>to-do</a>
+            <a href="todolist">오늘의<br>to-do</a>
+            <a href="listExTodo">지나간<br>to-do </a>
+{#            <a href="myfavorites">나의<br>Favorites<br> </a>#}
+            <a onclick="sign_out()">오늘은<br>Logout<br> </a>
+{#            <a onclick="">개발팀<br>PR<br> </a>#}
+            <a href="make_member">개발팀<br>PR</a>
+            <div class="nav-underline"></div>
+        </ul>
+    </div>
+</section>
+
+{% block content %}
+{% endblock %}
+</body>
+
+
+</html>
